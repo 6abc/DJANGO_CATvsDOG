@@ -36,7 +36,7 @@ fi
 # Install dependencies
 echo -e "${BLUE}Installing dependencies...${NC}"
 pip install --upgrade pip
-pip install django djangorestframework tensorflow pillow numpy
+pip install django djangorestframework tensorflow pillow numpy scipy
 
 # Create Django project
 echo -e "${BLUE}Creating Django project...${NC}"

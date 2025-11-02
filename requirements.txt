@@ -1,0 +1,6 @@
+django
+djangorestframework
+tensorflow
+pillow
+numpy
+scipy
