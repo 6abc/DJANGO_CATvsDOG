@@ -1,0 +1,95 @@
+<!-- classifier/templates/classifier/public_models.html -->
+{% extends 'classifier/base.html' %}
+
+{% block title %}Public Models{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="text-white">
+            <i class="bi bi-globe"></i> Public Models
+        </h2>
+        <p class="text-white-50">Explore and use models shared by the community</p>
+    </div>
+</div>
+
+<div class="row">
+    {% if models %}
+        {% for model in models %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">{{ model.name }}</h5>
+                    <small>
+                        <i class="bi bi-person"></i> by {{ model.user.username }}
+                    </small>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ model.description|truncatewords:20 }}</p>
+                    
+                    <div class="row text-center mb-3">
+                        <div class="col-6">
+                            <h4 class="text-success mb-0">{{ model.accuracy|floatformat:1 }}%</h4>
+                            <small class="text-muted">Accuracy</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-primary mb-0">{{ model.predictions.count }}</h4>
+                            <small class="text-muted">Uses</small>
+                        </div>
+                    </div>
+
+                    <small class="text-muted d-block">
+                        <i class="bi bi-calendar"></i> Created {{ model.created_at|date:"M d, Y" }}
+                    </small>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'predict_image' model.id %}" class="btn btn-success">
+                            <i class="bi bi-image"></i> Use This Model
+                        </a>
+                        <a href="{% url 'model_detail' model.id %}" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-info-circle"></i> View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-inbox display-1 text-muted mb-3"></i>
+                    <h4>No Public Models Yet</h4>
+                    <p class="text-muted">Be the first to train and share a model!</p>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'create_model' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-plus-circle"></i> Create Model
+                    </a>
+                    {% else %}
+                    <a href="{% url 'register' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-person-plus"></i> Register to Create Models
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+{% if user.is_authenticated %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-light shadow">
+            <div class="card-body text-center">
+                <h5>Want to share your model?</h5>
+                <p class="mb-3">Train a model and make it public to share with the community!</p>
+                <a href="{% url 'create_model' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Create New Model
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

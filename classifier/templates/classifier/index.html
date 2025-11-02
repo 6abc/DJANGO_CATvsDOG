@@ -1,0 +1,158 @@
+<!-- classifier/templates/classifier/index.html -->
+{% extends 'classifier/base.html' %}
+
+{% block title %}Home - AI Model Training Platform{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 text-center mb-5">
+        <h1 class="display-4 text-white mb-3">
+            <i class="bi bi-robot"></i> Train Your Own AI Model
+        </h1>
+        <p class="lead text-white-50">
+            Upload your dataset, train a custom cat vs dog classifier, and make predictions!
+        </p>
+        {% if user.is_authenticated %}
+        <a href="{% url 'create_model' %}" class="btn btn-light btn-lg">
+            <i class="bi bi-plus-circle"></i> Create New Model
+        </a>
+        {% else %}
+        <a href="{% url 'register' %}" class="btn btn-light btn-lg me-2">
+            <i class="bi bi-person-plus"></i> Register to Create Models
+        </a>
+        <a href="{% url 'public_models' %}" class="btn btn-outline-light btn-lg">
+            <i class="bi bi-globe"></i> Browse Public Models
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+{% if user.is_authenticated and my_models %}
+<!-- My Models Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="text-white mb-3"><i class="bi bi-folder"></i> My Models</h2>
+    </div>
+    {% for model in my_models %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 shadow">
+            <div class="card-header {% if model.status == 'completed' %}bg-success{% elif model.status == 'training' %}bg-warning{% elif model.status == 'failed' %}bg-danger{% else %}bg-secondary{% endif %} text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-gear-fill"></i> {{ model.name }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">{{ model.description|truncatewords:15 }}</p>
+                
+                <div class="mb-3">
+                    <span class="badge {% if model.status == 'completed' %}bg-success{% elif model.status == 'training' %}bg-warning text-dark{% elif model.status == 'failed' %}bg-danger{% else %}bg-secondary{% endif %}">
+                        {{ model.get_status_display }}
+                    </span>
+                    {% if model.is_public %}
+                    <span class="badge bg-info">Public</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Private</span>
+                    {% endif %}
+                </div>
+
+                {% if model.status == 'completed' %}
+                <div class="mb-2">
+                    <small class="text-muted">
+                        <i class="bi bi-check-circle"></i> Accuracy: {{ model.accuracy|floatformat:1 }}%
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="{% url 'model_detail' model.id %}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-eye"></i> View
+                </a>
+                {% if model.status == 'completed' %}
+                <a href="{% url 'predict_image' model.id %}" class="btn btn-success btn-sm">
+                    <i class="bi bi-image"></i> Predict
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Shared/Public Models -->
+{% if shared_models %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="text-white mb-3"><i class="bi bi-globe"></i> Public Models</h2>
+    </div>
+    {% for model in shared_models|slice:":6" %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-globe"></i> {{ model.name }}
+                </h5>
+                <small>by {{ model.user.username }}</small>
+            </div>
+            <div class="card-body">
+                <p class="card-text">{{ model.description|truncatewords:15 }}</p>
+                <div class="mb-2">
+                    <small class="text-muted">
+                        <i class="bi bi-check-circle"></i> Accuracy: {{ model.accuracy|floatformat:1 }}%
+                    </small>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="{% url 'model_detail' model.id %}" class="btn btn-info btn-sm text-white">
+                    <i class="bi bi-eye"></i> View
+                </a>
+                <a href="{% url 'predict_image' model.id %}" class="btn btn-success btn-sm">
+                    <i class="bi bi-image"></i> Use Model
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    <div class="col-12 text-center">
+        <a href="{% url 'public_models' %}" class="btn btn-outline-light">
+            View All Public Models <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<!-- How It Works Section -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-question-circle"></i> How It Works</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="display-4 text-primary mb-2">1</div>
+                        <h5>Create Model</h5>
+                        <p class="small text-muted">Set up your model configuration</p>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="display-4 text-primary mb-2">2</div>
+                        <h5>Upload Dataset</h5>
+                        <p class="small text-muted">Upload cat and dog images</p>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="display-4 text-primary mb-2">3</div>
+                        <h5>Train Model</h5>
+                        <p class="small text-muted">Let AI learn from your data</p>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="display-4 text-primary mb-2">4</div>
+                        <h5>Make Predictions</h5>
+                        <p class="small text-muted">Classify new images!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+<!-- classifier/templates/classifier/prediction_result.html -->
+{% extends 'classifier/base.html' %}
+
+{% block title %}Prediction Result{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-body p-5 text-center">
+                <!-- Result -->
+                {% if prediction.result == 'Dog' %}
+                    <i class="bi bi-emoji-smile display-1 text-warning mb-3"></i>
+                    <h1 class="text-warning mb-4">🐶 It's a Dog!</h1>
+                {% else %}
+                    <i class="bi bi-emoji-heart-eyes display-1 text-info mb-3"></i>
+                    <h1 class="text-info mb-4">🐱 It's a Cat!</h1>
+                {% endif %}
+
+                <!-- Confidence -->
+                <div class="my-4">
+                    <h4 class="text-muted mb-3">Confidence Score</h4>
+                    <div class="progress" style="height: 40px;">
+                        <div class="progress-bar {% if prediction.result == 'Dog' %}bg-warning{% else %}bg-info{% endif %}" 
+                             role="progressbar" 
+                             style="width: {{ prediction.confidence|floatformat:2 }}%;">
+                            <strong class="fs-5">{{ prediction.confidence|floatformat:2 }}%</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Image -->
+                <div class="my-4">
+                    <img src="{{ prediction.image.url }}" 
+                         alt="Classified image" 
+                         class="img-fluid rounded shadow" 
+                         style="max-height: 400px;">
+                </div>
+
+                <!-- Model Info -->
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    Predicted using model: <strong>{{ model.name }}</strong>
+                    (Trained with {{ model.accuracy|floatformat:1 }}% accuracy)
+                </div>
+
+                <!-- Actions -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+                    <a href="{% url 'predict_image' model.id %}" class="btn btn-success btn-lg">
+                        <i class="bi bi-arrow-repeat"></i> Classify Another
+                    </a>
+                    <a href="{% url 'model_detail' model.id %}" class="btn btn-outline-primary btn-lg">
+                        <i class="bi bi-arrow-left"></i> Back to Model
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

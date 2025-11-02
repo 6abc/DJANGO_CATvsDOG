@@ -1,0 +1,149 @@
+<!-- classifier/templates/classifier/upload_data.html -->
+{% extends 'classifier/base.html' %}
+
+{% block title %}Upload Dataset - {{ model.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-cloud-upload"></i> Upload Training Data
+                </h4>
+                <small>Model: {{ model.name }}</small>
+            </div>
+            <div class="card-body">
+                <!-- Statistics -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="bi bi-folder"></i> Training Data
+                                </h5>
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <i class="bi bi-emoji-heart-eyes text-info"></i>
+                                        Cats: <strong>{{ train_cats }}</strong>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-emoji-smile text-warning"></i>
+                                        Dogs: <strong>{{ train_dogs }}</strong>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    Total: <strong>{{ total_train }}</strong>
+                                    {% if total_train < 20 %}
+                                        <span class="badge bg-warning text-dark">Need {{ 20|add:"-"|add:total_train }} more</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Ready!</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="bi bi-clipboard-check"></i> Validation Data
+                                </h5>
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <i class="bi bi-emoji-heart-eyes text-info"></i>
+                                        Cats: <strong>{{ val_cats }}</strong>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-emoji-smile text-warning"></i>
+                                        Dogs: <strong>{{ val_dogs }}</strong>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    Total: <strong>{{ total_val }}</strong>
+                                    {% if total_val < 4 %}
+                                        <span class="badge bg-warning text-dark">Need {{ 4|add:"-"|add:total_val }} more</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Ready!</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upload Form -->
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Category *</label>
+                            <select name="category" class="form-select" required>
+                                <option value="cats">🐱 Cats</option>
+                                <option value="dogs">🐶 Dogs</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Dataset Type *</label>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" name="is_validation" id="isValidation">
+                                <label class="form-check-label" for="isValidation">
+                                    Use for validation
+                                </label>
+                            </div>
+                            <small class="text-muted">Check for validation set (20% of data)</small>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Images *</label>
+                            <input type="file" name="images" class="form-control" multiple accept="image/*" required>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="bi bi-lightbulb"></i>
+                        <strong>Tips:</strong>
+                        <ul class="mb-0">
+                            <li>Upload at least 10 images per category for training</li>
+                            <li>Upload at least 2 images per category for validation</li>
+                            <li>Use clear, high-quality images for better accuracy</li>
+                            <li>Select multiple images at once to upload faster</li>
+                        </ul>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload"></i> Upload Images
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-body text-center">
+                <h5>Ready to train?</h5>
+                {% if total_train >= 20 and total_val >= 4 %}
+                    <p class="text-success">✅ You have enough data to start training!</p>
+                    <a href="{% url 'start_training' model.id %}" class="btn btn-success btn-lg" onclick="return confirm('Start training? This may take several minutes.')">
+                        <i class="bi bi-play-circle"></i> Start Training
+                    </a>
+                {% else %}
+                    <p class="text-warning">⚠️ Upload more images before training</p>
+                    <button class="btn btn-secondary btn-lg" disabled>
+                        <i class="bi bi-play-circle"></i> Start Training
+                    </button>
+                {% endif %}
+                <a href="{% url 'model_detail' model.id %}" class="btn btn-outline-primary btn-lg">
+                    <i class="bi bi-arrow-left"></i> Back to Model
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

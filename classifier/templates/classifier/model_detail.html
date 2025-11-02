@@ -1,0 +1,171 @@
+<!-- classifier/templates/classifier/model_detail.html -->
+{% extends 'classifier/base.html' %}
+
+{% block title %}{{ model.name }} - Model Details{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card shadow">
+            <div class="card-header {% if model.status == 'completed' %}bg-success{% elif model.status == 'training' %}bg-warning{% elif model.status == 'failed' %}bg-danger{% else %}bg-secondary{% endif %} text-white">
+                <h3 class="mb-0">
+                    <i class="bi bi-gear-fill"></i> {{ model.name }}
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Model Information</h5>
+                        <table class="table">
+                            <tr>
+                                <th>Status:</th>
+                                <td>
+                                    <span class="badge {% if model.status == 'completed' %}bg-success{% elif model.status == 'training' %}bg-warning text-dark{% elif model.status == 'failed' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                        {{ model.get_status_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Description:</th>
+                                <td>{{ model.description|default:"No description" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Epochs:</th>
+                                <td>{{ model.epochs }}</td>
+                            </tr>
+                            <tr>
+                                <th>Created:</th>
+                                <td>{{ model.created_at|date:"M d, Y H:i" }}</td>
+                            </tr>
+                            {% if model.status == 'completed' %}
+                            <tr>
+                                <th>Training Accuracy:</th>
+                                <td><strong class="text-success">{{ model.accuracy|floatformat:2 }}%</strong></td>
+                            </tr>
+                            <tr>
+                                <th>Validation Accuracy:</th>
+                                <td><strong class="text-success">{{ model.val_accuracy|floatformat:2 }}%</strong></td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Actions</h5>
+                        <div class="d-grid gap-2">
+                            {% if is_owner %}
+                                {% if model.status == 'pending' %}
+                                    <a href="{% url 'upload_data' model.id %}" class="btn btn-primary">
+                                        <i class="bi bi-upload"></i> Upload Training Data
+                                    </a>
+                                {% elif model.status == 'training' %}
+                                    <div class="alert alert-warning">
+                                        <div class="spinner-border spinner-border-sm" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        Training in progress... Please wait.
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                             id="trainingProgress"
+                                             role="progressbar" 
+                                             style="width: {{ model.training_progress }}%">
+                                            {{ model.training_progress }}%
+                                        </div>
+                                    </div>
+                                {% elif model.status == 'completed' %}
+                                    <a href="{% url 'predict_image' model.id %}" class="btn btn-success btn-lg">
+                                        <i class="bi bi-image"></i> Make Prediction
+                                    </a>
+                                    <a href="{% url 'toggle_visibility' model.id %}" class="btn btn-outline-info">
+                                        <i class="bi bi-{% if model.is_public %}lock{% else %}globe{% endif %}"></i> 
+                                        Make {% if model.is_public %}Private{% else %}Public{% endif %}
+                                    </a>
+                                    <a href="{% url 'upload_data' model.id %}" class="btn btn-outline-primary">
+                                        <i class="bi bi-plus-circle"></i> Add More Training Data
+                                    </a>
+                                {% elif model.status == 'failed' %}
+                                    <div class="alert alert-danger">
+                                        <i class="bi bi-exclamation-triangle"></i>
+                                        Training failed: {{ model.error_message }}
+                                    </div>
+                                    <a href="{% url 'upload_data' model.id %}" class="btn btn-warning">
+                                        <i class="bi bi-arrow-clockwise"></i> Try Again
+                                    </a>
+                                {% endif %}
+                            {% else %}
+                                {% if model.status == 'completed' %}
+                                    <a href="{% url 'predict_image' model.id %}" class="btn btn-success btn-lg">
+                                        <i class="bi bi-image"></i> Make Prediction
+                                    </a>
+                                    <div class="alert alert-info mt-3">
+                                        <i class="bi bi-info-circle"></i> This is a public model by <strong>{{ model.user.username }}</strong>
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                            
+                            <a href="{% url 'index' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to Home
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Predictions -->
+    {% if predictions %}
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-clock-history"></i> Recent Predictions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for pred in predictions %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <img src="{{ pred.image.url }}" class="card-img-top" alt="{{ pred.result }}" style="height: 200px; object-fit: cover;">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    {% if pred.result == 'Dog' %}
+                                        🐶 Dog
+                                    {% else %}
+                                        🐱 Cat
+                                    {% endif %}
+                                </h5>
+                                <p class="card-text">
+                                    <span class="badge bg-success">{{ pred.confidence|floatformat:2 }}%</span>
+                                </p>
+                                <small class="text-muted">{{ pred.created_at|date:"M d, H:i" }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if model.status == 'training' %}
+<script>
+// Auto-refresh training status
+setInterval(function() {
+    fetch("{% url 'training_status' model.id %}")
+        .then(response => response.json())
+        .then(data => {
+            if (data.status !== 'training') {
+                location.reload();
+            } else {
+                document.getElementById('trainingProgress').style.width = data.progress + '%';
+                document.getElementById('trainingProgress').textContent = data.progress + '%';
+            }
+        });
+}, 5000); // Check every 5 seconds
+</script>
+{% endif %}
+{% endblock %}

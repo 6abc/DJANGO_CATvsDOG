@@ -1,0 +1,85 @@
+<!-- classifier/templates/classifier/my_models.html -->
+{% extends 'classifier/base.html' %}
+
+{% block title %}My Models{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <h2 class="text-white">
+            <i class="bi bi-folder"></i> My Models
+        </h2>
+        <a href="{% url 'create_model' %}" class="btn btn-light">
+            <i class="bi bi-plus-circle"></i> Create New Model
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    {% if models %}
+        {% for model in models %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow">
+                <div class="card-header {% if model.status == 'completed' %}bg-success{% elif model.status == 'training' %}bg-warning{% elif model.status == 'failed' %}bg-danger{% else %}bg-secondary{% endif %} text-white">
+                    <h5 class="mb-0">{{ model.name }}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ model.description|truncatewords:20 }}</p>
+                    
+                    <div class="mb-2">
+                        <span class="badge {% if model.status == 'completed' %}bg-success{% elif model.status == 'training' %}bg-warning text-dark{% elif model.status == 'failed' %}bg-danger{% else %}bg-secondary{% endif %}">
+                            {{ model.get_status_display }}
+                        </span>
+                        {% if model.is_public %}
+                        <span class="badge bg-info"><i class="bi bi-globe"></i> Public</span>
+                        {% else %}
+                        <span class="badge bg-secondary"><i class="bi bi-lock"></i> Private</span>
+                        {% endif %}
+                    </div>
+
+                    {% if model.status == 'completed' %}
+                    <div class="mb-2">
+                        <small class="text-muted">
+                            <i class="bi bi-graph-up"></i> Accuracy: {{ model.accuracy|floatformat:1 }}%
+                        </small>
+                    </div>
+                    <div class="mb-2">
+                        <small class="text-muted">
+                            <i class="bi bi-activity"></i> Predictions: {{ model.predictions.count }}
+                        </small>
+                    </div>
+                    {% endif %}
+
+                    <small class="text-muted d-block">
+                        <i class="bi bi-calendar"></i> {{ model.created_at|date:"M d, Y" }}
+                    </small>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'model_detail' model.id %}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-eye"></i> View
+                    </a>
+                    {% if model.status == 'completed' %}
+                    <a href="{% url 'predict_image' model.id %}" class="btn btn-success btn-sm">
+                        <i class="bi bi-image"></i> Predict
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-inbox display-1 text-muted mb-3"></i>
+                    <h4>No Models Yet</h4>
+                    <p class="text-muted">Create your first AI model to get started!</p>
+                    <a href="{% url 'create_model' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-plus-circle"></i> Create Model
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
