@@ -57,6 +57,9 @@
                                     <a href="{% url 'upload_data' model.id %}" class="btn btn-primary">
                                         <i class="bi bi-upload"></i> Upload Training Data
                                     </a>
+                                    <a href="{% url 'delete_model' model.id %}" class="btn btn-outline-danger">
+                                        <i class="bi bi-trash"></i> Delete Model
+                                    </a>
                                 {% elif model.status == 'training' %}
                                     <div class="alert alert-warning">
                                         <div class="spinner-border spinner-border-sm" role="status">
@@ -81,7 +84,15 @@
                                         Make {% if model.is_public %}Private{% else %}Public{% endif %}
                                     </a>
                                     <a href="{% url 'upload_data' model.id %}" class="btn btn-outline-primary">
-                                        <i class="bi bi-plus-circle"></i> Add More Training Data
+                                        <i class="bi bi-plus-circle"></i> Add More Data
+                                    </a>
+                                    {% if model.predictions.count > 0 %}
+                                    <a href="{% url 'clear_predictions' model.id %}" class="btn btn-outline-warning">
+                                        <i class="bi bi-eraser"></i> Clear Predictions ({{ model.predictions.count }})
+                                    </a>
+                                    {% endif %}
+                                    <a href="{% url 'delete_model' model.id %}" class="btn btn-outline-danger">
+                                        <i class="bi bi-trash"></i> Delete Model
                                     </a>
                                 {% elif model.status == 'failed' %}
                                     <div class="alert alert-danger">
@@ -90,6 +101,9 @@
                                     </div>
                                     <a href="{% url 'upload_data' model.id %}" class="btn btn-warning">
                                         <i class="bi bi-arrow-clockwise"></i> Try Again
+                                    </a>
+                                    <a href="{% url 'delete_model' model.id %}" class="btn btn-outline-danger">
+                                        <i class="bi bi-trash"></i> Delete Model
                                     </a>
                                 {% endif %}
                             {% else %}
@@ -117,16 +131,28 @@
     {% if predictions %}
     <div class="col-12">
         <div class="card shadow">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">
                     <i class="bi bi-clock-history"></i> Recent Predictions
                 </h5>
+                {% if is_owner and model.predictions.count > 0 %}
+                <a href="{% url 'clear_predictions' model.id %}" class="btn btn-sm btn-outline-light">
+                    <i class="bi bi-trash"></i> Clear All
+                </a>
+                {% endif %}
             </div>
             <div class="card-body">
                 <div class="row">
                     {% for pred in predictions %}
                     <div class="col-md-4 mb-3">
-                        <div class="card">
+                        <div class="card position-relative">
+                            {% if is_owner %}
+                            <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2" 
+                                    onclick="if(confirm('Delete this prediction?')) { window.location.href='{% url 'delete_prediction' pred.id %}'; }"
+                                    style="z-index: 10;">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                            {% endif %}
                             <img src="{{ pred.image.url }}" class="card-img-top" alt="{{ pred.result }}" style="height: 200px; object-fit: cover;">
                             <div class="card-body">
                                 <h5 class="card-title">

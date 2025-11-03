@@ -388,6 +388,135 @@ def get_training_status(request, model_id):
     })
 
 @login_required
+def delete_model(request, model_id):
+    """Delete a model and all associated data"""
+    model = get_object_or_404(TrainedModel, id=model_id)
+    
+    # Check ownership
+    if model.user != request.user:
+        messages.error(request, 'You do not have permission to delete this model.')
+        return redirect('index')
+    
+    if request.method == 'POST':
+        model_name = model.name
+        
+        # Delete model file if exists
+        if model.model_file:
+            try:
+                if os.path.exists(model.model_file.path):
+                    os.remove(model.model_file.path)
+            except Exception as e:
+                print(f"Error deleting model file: {e}")
+        
+        # Delete all associated images
+        for dataset in model.datasets.all():
+            if dataset.image:
+                try:
+                    if os.path.exists(dataset.image.path):
+                        os.remove(dataset.image.path)
+                except Exception as e:
+                    print(f"Error deleting dataset image: {e}")
+        
+        for prediction in model.predictions.all():
+            if prediction.image:
+                try:
+                    if os.path.exists(prediction.image.path):
+                        os.remove(prediction.image.path)
+                except Exception as e:
+                    print(f"Error deleting prediction image: {e}")
+        
+        # Delete the model (cascades to datasets and predictions)
+        model.delete()
+        
+        messages.success(request, f'Model "{model_name}" has been deleted successfully.')
+        return redirect('my_models')
+    
+    return render(request, 'classifier/confirm_delete.html', {
+        'model': model,
+        'item_type': 'model'
+    })
+
+@login_required
+def delete_dataset_image(request, dataset_id):
+    """Delete a single training image"""
+    dataset = get_object_or_404(TrainingDataset, id=dataset_id)
+    model = dataset.trained_model
+    
+    # Check ownership
+    if model.user != request.user:
+        messages.error(request, 'You do not have permission to delete this image.')
+        return redirect('index')
+    
+    # Delete image file
+    if dataset.image:
+        try:
+            if os.path.exists(dataset.image.path):
+                os.remove(dataset.image.path)
+        except Exception as e:
+            print(f"Error deleting image: {e}")
+    
+    dataset.delete()
+    messages.success(request, 'Image deleted successfully.')
+    return redirect('upload_data', model_id=model.id)
+
+@login_required
+def delete_prediction(request, prediction_id):
+    """Delete a prediction"""
+    prediction = get_object_or_404(Prediction, id=prediction_id)
+    model = prediction.trained_model
+    
+    # Check ownership (only model owner can delete predictions)
+    if model.user != request.user:
+        messages.error(request, 'You do not have permission to delete this prediction.')
+        return redirect('index')
+    
+    # Delete image file
+    if prediction.image:
+        try:
+            if os.path.exists(prediction.image.path):
+                os.remove(prediction.image.path)
+        except Exception as e:
+            print(f"Error deleting prediction image: {e}")
+    
+    prediction.delete()
+    messages.success(request, 'Prediction deleted successfully.')
+    return redirect('model_detail', model_id=model.id)
+
+@login_required
+def clear_all_predictions(request, model_id):
+    """Clear all predictions for a model"""
+    model = get_object_or_404(TrainedModel, id=model_id)
+    
+    # Check ownership
+    if model.user != request.user:
+        messages.error(request, 'You do not have permission to clear predictions.')
+        return redirect('index')
+    
+    if request.method == 'POST':
+        count = model.predictions.count()
+        
+        # Delete all prediction images
+        for prediction in model.predictions.all():
+            if prediction.image:
+                try:
+                    if os.path.exists(prediction.image.path):
+                        os.remove(prediction.image.path)
+                except Exception as e:
+                    print(f"Error deleting prediction image: {e}")
+        
+        # Delete all predictions
+        model.predictions.all().delete()
+        
+        messages.success(request, f'{count} predictions cleared successfully.')
+        return redirect('model_detail', model_id=model.id)
+    
+    return render(request, 'classifier/confirm_delete.html', {
+        'model': model,
+        'item_type': 'all_predictions',
+        'count': model.predictions.count()
+    })
+
+@login_required
 def my_models(request):
     """View user's own models"""
     models = TrainedModel.objects.filter(user=request.user)

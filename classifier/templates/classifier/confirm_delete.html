@@ -1,0 +1,89 @@
+<!-- classifier/templates/classifier/confirm_delete.html -->
+{% extends 'classifier/base.html' %}
+
+{% block title %}Confirm Delete{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow border-danger">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-exclamation-triangle"></i> Confirm Deletion
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                {% if item_type == 'model' %}
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <strong>Warning!</strong> This action cannot be undone.
+                    </div>
+                    
+                    <h5 class="mb-3">Are you sure you want to delete this model?</h5>
+                    
+                    <div class="card bg-light mb-3">
+                        <div class="card-body">
+                            <h6 class="card-title"><strong>{{ model.name }}</strong></h6>
+                            <p class="card-text text-muted">{{ model.description|truncatewords:30 }}</p>
+                        </div>
+                    </div>
+
+                    <p class="mb-3">This will permanently delete:</p>
+                    <ul class="mb-3">
+                        <li><i class="bi bi-x-circle text-danger"></i> The trained model file</li>
+                        <li><i class="bi bi-x-circle text-danger"></i> All training images ({{ model.datasets.count }} images)</li>
+                        <li><i class="bi bi-x-circle text-danger"></i> All predictions ({{ model.predictions.count }} predictions)</li>
+                        <li><i class="bi bi-x-circle text-danger"></i> All model history and statistics</li>
+                    </ul>
+
+                {% elif item_type == 'all_predictions' %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <strong>Warning!</strong> This will delete all prediction history.
+                    </div>
+                    
+                    <h5 class="mb-3">Clear all predictions for "{{ model.name }}"?</h5>
+                    
+                    <p class="mb-3">This will permanently delete:</p>
+                    <ul class="mb-3">
+                        <li><i class="bi bi-x-circle text-warning"></i> All {{ count }} prediction images</li>
+                        <li><i class="bi bi-x-circle text-warning"></i> All prediction results and history</li>
+                    </ul>
+                    
+                    <p><strong>Note:</strong> The trained model will NOT be deleted.</p>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger btn-lg">
+                            <i class="bi bi-trash"></i> Yes, Delete Permanently
+                        </button>
+                        {% if item_type == 'model' %}
+                            <a href="{% url 'model_detail' model.id %}" class="btn btn-outline-secondary btn-lg">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                        {% elif item_type == 'all_predictions' %}
+                            <a href="{% url 'model_detail' model.id %}" class="btn btn-outline-secondary btn-lg">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Info Card -->
+        <div class="card mt-3 bg-light">
+            <div class="card-body">
+                <h6><i class="bi bi-info-circle"></i> Good to know:</h6>
+                <ul class="mb-0 small">
+                    <li>Deleted items cannot be recovered</li>
+                    <li>All associated files will be removed from storage</li>
+                    <li>This action is immediate and irreversible</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

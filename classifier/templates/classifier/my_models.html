@@ -63,6 +63,9 @@
                         <i class="bi bi-image"></i> Predict
                     </a>
                     {% endif %}
+                    <a href="{% url 'delete_model' model.id %}" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-trash"></i> Delete
+                    </a>
                 </div>
             </div>
         </div>

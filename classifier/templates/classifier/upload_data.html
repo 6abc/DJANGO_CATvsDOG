@@ -119,6 +119,38 @@
                         </button>
                     </div>
                 </form>
+
+                <!-- Uploaded Images Preview (if any exist) -->
+                {% if model.datasets.all %}
+                <hr class="my-4">
+                <h5>Uploaded Images</h5>
+                <div class="row">
+                    {% for dataset in model.datasets.all|slice:":12" %}
+                    <div class="col-md-2 col-4 mb-3">
+                        <div class="card position-relative">
+                            <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" 
+                                    onclick="if(confirm('Delete this image?')) { window.location.href='{% url 'delete_dataset' dataset.id %}'; }"
+                                    style="z-index: 10; opacity: 0.9;">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                            <img src="{{ dataset.image.url }}" class="card-img-top" style="height: 100px; object-fit: cover;" 
+                                 alt="{{ dataset.category }}">
+                            <div class="card-body p-2">
+                                <small class="text-muted">
+                                    {% if dataset.category == 'cats' %}🐱{% else %}🐶{% endif %}
+                                    {% if dataset.is_validation %}
+                                    <span class="badge bg-info">Val</span>
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if model.datasets.count > 12 %}
+                <p class="text-muted">... and {{ model.datasets.count|add:"-12" }} more images</p>
+                {% endif %}
+                {% endif %}
             </div>
         </div>
     </div>

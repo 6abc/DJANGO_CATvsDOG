@@ -21,6 +21,14 @@ urlpatterns = [
     path('model/<uuid:model_id>/train/', views.start_training, name='start_training'),
     path('model/<uuid:model_id>/predict/', views.predict_image, name='predict_image'),
     path('model/<uuid:model_id>/toggle-visibility/', views.toggle_model_visibility, name='toggle_visibility'),
+    path('model/<uuid:model_id>/delete/', views.delete_model, name='delete_model'),
+    path('model/<uuid:model_id>/clear-predictions/', views.clear_all_predictions, name='clear_predictions'),
+    
+    # Dataset management
+    path('dataset/<int:dataset_id>/delete/', views.delete_dataset_image, name='delete_dataset'),
+    
+    # Prediction management
+    path('prediction/<int:prediction_id>/delete/', views.delete_prediction, name='delete_prediction'),
     
     # AJAX endpoints
     path('api/model/<uuid:model_id>/status/', views.get_training_status, name='training_status'),
